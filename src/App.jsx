@@ -263,8 +263,8 @@ const columns = [
 
 const options = {
   selectableRows: false,
-  rowsPerPage: 10,
-  rowsPerPageOptions: [5, 10, 20],
+  rowsPerPage: 8,
+  rowsPerPageOptions: [5,8,10],
   setTableProps: () => ({
     size: 'small',
     sx: {
