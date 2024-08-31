@@ -1,12 +1,12 @@
-import React from 'react';
-import { Dialog, DialogContent } from '@mui/material';
-import Form from './Form';  // Import the form that should appear in the modal
+import React from "react";
+import { Dialog, DialogContent } from "@mui/material";
+import Form from "./Form";
 
-const ModalDialog = ({ open, handleClose }) => {
+const ModalDialog = ({ open, handleClose, handleAddRow }) => {
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
       <DialogContent>
-        <Form handleClose={handleClose} />
+        <Form handleClose={handleClose} handleAddRow={handleAddRow} />
       </DialogContent>
     </Dialog>
   );

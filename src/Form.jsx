@@ -6,7 +6,7 @@ const StyledTextField = styled(TextField)({
   width: "300px",
 });
 
-const Form = ({ handleClose }) => {
+const Form = ({ handleClose, handleAddRow }) => {
   const [transactionId, setTransactionId] = useState("");
   const [date, setDate] = useState("");
   const [amount, setAmount] = useState("");
@@ -17,9 +17,20 @@ const Form = ({ handleClose }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(transactionId, date, amount, location, time, merchant, fraudStatus);
+    const newRow = {
+      transactionId,
+      date,
+      amount,
+      location,
+      time,
+      merchant,
+      fraudStatus,
+      className: 'new-row',  // Add a class to highlight the new row
+    };
+    handleAddRow(newRow); // Add the new row to the table
     handleClose(); // Close the modal on form submission
   };
+  
 
   return (
     <form

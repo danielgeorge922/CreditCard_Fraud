@@ -4,10 +4,17 @@ import MUIDataTable from 'mui-datatables';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import IconButton from '@mui/material/IconButton';
-import AddIcon from '@mui/icons-material/Add';
 import Button from '@mui/material/Button';
-import ModalDialog from './ModalDialog'; // Import the ModalDialog component
+import AddIcon from '@mui/icons-material/Add';
+import ModalDialog from './ModalDialog';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import StoreIcon from '@mui/icons-material/Store';
 
 const getStatusColor = (value) => {
   switch (value) {
@@ -20,8 +27,19 @@ const getStatusColor = (value) => {
   }
 };
 
+const getStatusIcon = (value) => {
+  switch (value) {
+    case 'Fraudulent':
+      return <ErrorIcon style={{ color: 'white', marginRight: '5px', fontSize: '16px' }} />;
+    case 'Legitimate':
+      return <CheckCircleIcon style={{ color: 'white', marginRight: '5px', fontSize: '16px' }} />;
+    default:
+      return null;
+  }
+};
+
 // Extended dummy data for Credit Card Fraud Detection with 20 rows
-const creditCardData = [
+const initialData = [
   {
     transactionId: 'TXN001',
     date: '01/15/2023',
@@ -205,19 +223,37 @@ const creditCardData = [
 ];
 
 const columns = [
-  'Transaction ID',
-  'Date',
-  'Amount',
-  'Location',
-  'Time',
-  'Merchant',
+  {
+    name: 'Transaction ID',
+    label: <><ReceiptIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#9E9E9E' }} /> Transaction ID</>,
+  },
+  {
+    name: 'Date',
+    label: <><CalendarTodayIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#42A5F5' }} /> Date</>,
+  },
+  {
+    name: 'Amount',
+    label: <><AttachMoneyIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#66BB6A' }} /> Amount</>,
+  },
+  {
+    name: 'Location',
+    label: <><LocationOnIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#26C6DA' }} /> Location</>,
+  },
+  {
+    name: 'Time',
+    label: <><AccessTimeIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#FFA726' }} /> Time</>,
+  },
+  {
+    name: 'Merchant',
+    label: <><StoreIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#8D6E63' }} /> Merchant</>,
+  },
   {
     name: 'Fraud Status',
     options: {
       customBodyRender: (value) => (
         value ? (
-          <p className={`capitalize px-3 py-1 inline-block rounded-full ${getStatusColor(value)}`}>
-            {value}
+          <p className={`capitalize px-3 py-1 inline-flex items-center rounded-full ${getStatusColor(value)}`}>
+            {getStatusIcon(value)}<span style={{ whiteSpace: 'nowrap' }}>{value}</span>
           </p>
         ) : null
       ),
@@ -227,17 +263,19 @@ const columns = [
 
 const options = {
   selectableRows: false,
-  rowsPerPage: 8,
+  rowsPerPage: 10,
   rowsPerPageOptions: [5, 10, 20],
   setTableProps: () => ({
-    size: 'small', // This will reduce the row height slightly to make the spacing more visible
+    size: 'small',
     sx: {
-      '& .MuiTableRow-root': {
-        marginBottom: '8px', // Add space between rows
+      '& .MuiTableRow-root.new-row': {
+        backgroundColor: '#3b4a5a', // Darker background color for new rows
+        // border: '2px solid #2b6dd6', // Border color for new rows
       },
     },
   }),
 };
+
 
 const getMuiTheme = () =>
   createTheme({
@@ -256,11 +294,11 @@ const getMuiTheme = () =>
         styleOverrides: {
           head: {
             padding: "10px 4px",
-            backgroundColor: "#1e293b", // Ensure header background matches the rest of the table
-            color: "#e2e8f0", // Ensure header text color matches the rest of the table
+            backgroundColor: "#1e293b",
+            color: "#e2e8f0",
           },
           body: {
-            padding: "12px 15px", // Increase padding for body cells to add more space
+            padding: "12px 15px",
             color: "#e2e8f0"
           },
         }
@@ -268,84 +306,91 @@ const getMuiTheme = () =>
       MuiTableHead: {
         styleOverrides: {
           root: {
-            backgroundColor: "#1e293b", // Ensure the entire header row background matches the rest of the table
+            backgroundColor: "#1e293b",
           },
         }
       },
     }
   });
 
-const CreditCardDataTable = () => (
-  <MUIDataTable
-    title={"Credit Card Transactions"}
-    data={creditCardData.map((row) => Object.values(row))}
-    columns={columns}
-    options={options}
-  />
-);
-
-const App = () => {
-  const location = useLocation();
-  const [open, setOpen] = useState(false);
-
-  const handleOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900 py-10">
-      <div className="w-full max-w-7xl h-3/5"> {/* Make the table wider */}
-        <ThemeProvider theme={getMuiTheme()}>
-          <div className="flex items-center justify-between">
-            <Tabs
-              value={location.pathname}
-              textColor="inherit"
-              indicatorColor="secondary"
-              sx={{
-                '& .MuiTab-root': {
+  const App = () => {
+    const location = useLocation();
+    const [data, setData] = useState(initialData);
+    const [open, setOpen] = useState(false);
+  
+    const handleOpen = () => {
+      setOpen(true);
+    };
+  
+    const handleClose = () => {
+      setOpen(false);
+    };
+  
+    const handleAddRow = (newRow) => {
+      newRow.isNew = true; // Mark the new row as 'new'
+      setData((prevData) => [{ ...newRow, isNew: true }, ...prevData]);
+    };
+  
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 py-10">
+        <div className="w-full max-w-7xl h-3/5">
+          <ThemeProvider theme={getMuiTheme()}>
+            <div className="flex items-center justify-between">
+              <Tabs
+                value={location.pathname}
+                textColor="inherit"
+                indicatorColor="secondary"
+                sx={{
+                  '& .MuiTab-root': {
+                    color: 'white',
+                  },
+                  '& .MuiTabs-indicator': {
+                    backgroundColor: 'white',
+                  },
+                }}
+              >
+                <Tab label="Credit Card Fraud Detection" value="/" component={Link} to="/" />
+              </Tabs>
+              <Button
+                variant="contained"
+                sx={{
+                  backgroundColor: '#2b6dd6',
                   color: 'white',
-                },
-                '& .MuiTabs-indicator': {
-                  backgroundColor: 'white',
-                },
-              }}
-            >
-              <Tab label="Credit Card Fraud Detection" value="/" component={Link} to="/" />
-            </Tabs>
-            {/* Add button */}
-
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: '#2b6dd6', // Set your desired background color here
-                color: 'white',             // Text color
-                '&:hover': {
-                  backgroundColor: '#89b5fa',  // Hover color
-                },
-              }}
-              startIcon={<AddIcon />} // Add the plus icon at the start
-              onClick={handleOpen} // Open the modal on button click
-            >
-              Add a Row
-            </Button>
-
-          </div>
-
-          <Routes>
-            <Route path="/" element={<CreditCardDataTable />} />
-          </Routes>
-
-          {/* Modal Dialog for Form */}
-          <ModalDialog open={open} handleClose={handleClose} />
-
-        </ThemeProvider>
+                  '&:hover': {
+                    backgroundColor: '#89b5fa',
+                  },
+                }}
+                startIcon={<AddIcon />}
+                onClick={handleOpen}
+              >
+                Add a Row
+              </Button>
+            </div>
+  
+            <Routes>
+              <Route path="/" element={
+                  <MUIDataTable
+                  title={"Credit Card Transactions"}
+                  data={data.map(row => Object.values(row))}
+                  columns={columns}
+                  options={{
+                    ...options,
+                    setRowProps: (row, dataIndex) => {
+                      return {
+                        className: data[dataIndex]?.isNew ? 'new-row' : '', // Apply the 'new-row' class to new rows
+                      };
+                    },
+                  }}
+                />
+              } />
+            </Routes>
+  
+            <ModalDialog open={open} handleClose={handleClose} handleAddRow={handleAddRow} />
+  
+          </ThemeProvider>
+        </div>
       </div>
-    </div>
-  );
-};
-
-export default App;
+    );
+  };
+  
+  export default App;
