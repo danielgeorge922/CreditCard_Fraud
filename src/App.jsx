@@ -6,6 +6,8 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
+import InfoIcon from '@mui/icons-material/Info';
+import DeleteIcon from '@mui/icons-material/Delete';
 import ModalDialog from './ModalDialog';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
@@ -15,13 +17,16 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import StoreIcon from '@mui/icons-material/Store';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import InsightsDialog from './InsightsDialog';
 
 const getStatusColor = (value) => {
   switch (value) {
     case 'Fraudulent':
-      return 'bg-red-500 text-white'; // Red background for Fraudulent transactions
+      return 'bg-red-500 text-white';
     case 'Legitimate':
-      return 'bg-green-500 text-white'; // Green background for Legitimate transactions
+      return 'bg-green-500 text-white';
     default:
       return '';
   }
@@ -37,6 +42,7 @@ const getStatusIcon = (value) => {
       return null;
   }
 };
+
 
 // Extended dummy data for Credit Card Fraud Detection with 20 rows
 const initialData = [
@@ -222,175 +228,215 @@ const initialData = [
   },
 ];
 
-const columns = [
-  {
-    name: 'Transaction ID',
-    label: <><ReceiptIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#9E9E9E' }} /> Transaction ID</>,
-  },
-  {
-    name: 'Date',
-    label: <><CalendarTodayIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#42A5F5' }} /> Date</>,
-  },
-  {
-    name: 'Amount',
-    label: <><AttachMoneyIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#66BB6A' }} /> Amount</>,
-  },
-  {
-    name: 'Location',
-    label: <><LocationOnIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#26C6DA' }} /> Location</>,
-  },
-  {
-    name: 'Time',
-    label: <><AccessTimeIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#FFA726' }} /> Time</>,
-  },
-  {
-    name: 'Merchant',
-    label: <><StoreIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#8D6E63' }} /> Merchant</>,
-  },
-  {
-    name: 'Fraud Status',
-    options: {
-      customBodyRender: (value) => (
-        value ? (
-          <p className={`capitalize px-3 py-1 inline-flex items-center rounded-full ${getStatusColor(value)}`}>
-            {getStatusIcon(value)}<span style={{ whiteSpace: 'nowrap' }}>{value}</span>
-          </p>
-        ) : null
-      ),
-    },
-  },
-];
 
-const options = {
-  selectableRows: false,
-  rowsPerPage: 8,
-  rowsPerPageOptions: [5,8,10],
-  setTableProps: () => ({
-    size: 'small',
-    sx: {
-      '& .MuiTableRow-root.new-row': {
-        backgroundColor: '#3b4a5a', // Darker background color for new rows
-        // border: '2px solid #2b6dd6', // Border color for new rows
+
+
+
+const App = () => {
+  const location = useLocation();
+  const [data, setData] = useState(initialData);
+  const [open, setOpen] = useState(false);
+  const [insightsOpen, setInsightsOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+
+  const handleOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleInsightsClose = () => {
+    setInsightsOpen(false);
+    setSelectedTransaction(null); // Clear the selected transaction data
+  };
+
+  const handleAddRow = (newRow) => {
+    newRow.isNew = true; // Mark the new row as 'new'
+    setData((prevData) => [{ ...newRow, isNew: true }, ...prevData]);
+  };
+
+  const handleDeleteRow = (rowIndex) => {
+    const newData = [...data];
+    newData.splice(rowIndex, 1);
+    setData(newData);
+  };
+
+  const handleViewInsights = (transaction) => {
+    setSelectedTransaction(transaction);
+    setInsightsOpen(true);
+  };
+
+  const columns = [
+    {
+      name: 'Transaction ID',
+      label: <><ReceiptIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#9E9E9E' }} /> Transaction ID</>,
+    },
+    {
+      name: 'Date',
+      label: <><CalendarTodayIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#42A5F5' }} /> Date</>,
+    },
+    {
+      name: 'Amount',
+      label: <><AttachMoneyIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#66BB6A' }} /> Amount</>,
+    },
+    {
+      name: 'Location',
+      label: <><LocationOnIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#26C6DA' }} /> Location</>,
+    },
+    {
+      name: 'Time',
+      label: <><AccessTimeIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#FFA726' }} /> Time</>,
+    },
+    {
+      name: 'Merchant',
+      label: <><StoreIcon sx={{ verticalAlign: 'middle', marginRight: 1, color: '#8D6E63' }} /> Merchant</>,
+    },
+    {
+      name: 'Fraud Status',
+      options: {
+        customBodyRender: (value, tableMeta) => {
+          return (
+            <div className="flex items-center">
+              <p className={`capitalize px-3 py-1 inline-flex items-center rounded-full ${getStatusColor(value)}`}>
+                {getStatusIcon(value)}<span style={{ whiteSpace: 'nowrap' }}>{value}</span>
+              </p>
+              {data[tableMeta.rowIndex]?.isNew && (
+                <div className="flex ml-2">
+                  <Tooltip title="View Insights">
+                    <IconButton onClick={() => handleViewInsights(data[tableMeta.rowIndex])}>
+                      <InfoIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Delete Row">
+                    <IconButton 
+                      onClick={() => handleDeleteRow(tableMeta.rowIndex)} 
+                      sx={{ color: 'red' , mr: -6}}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </div>
+              )}
+            </div>
+          );
+        },
       },
     },
-  }),
+  ];
+
+  const options = {
+    selectableRows: false,
+    rowsPerPage: 8,
+    rowsPerPageOptions: [5, 8, 10],
+    setTableProps: () => ({
+      size: 'small',
+      sx: {
+        '& .MuiTableRow-root.new-row': {
+          backgroundColor: '#3b4a5a',
+        },
+      },
+    }),
+  };
+
+  const getMuiTheme = () =>
+    createTheme({
+      typography: {
+        fontFamily: 'Poppins',
+      },
+      palette: {
+        background: {
+          paper: "#1e293b",
+          default: "#0f172a"
+        },
+        mode: 'dark',
+      },
+      components: {
+        MuiTableCell: {
+          styleOverrides: {
+            head: {
+              padding: "10px 4px",
+              backgroundColor: "#1e293b",
+              color: "#e2e8f0",
+            },
+            body: {
+              padding: "12px 15px",
+              color: "#e2e8f0"
+            },
+          }
+        },
+        MuiTableHead: {
+          styleOverrides: {
+            root: {
+              backgroundColor: "#1e293b",
+            },
+          }
+        },
+      }
+    });
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-900 py-10">
+      <div className="w-full max-w-7xl h-3/5">
+        <ThemeProvider theme={getMuiTheme()}>
+          <div className="flex items-center justify-between">
+            <Tabs
+              value={location.pathname}
+              textColor="inherit"
+              indicatorColor="secondary"
+              sx={{
+                '& .MuiTab-root': {
+                  color: 'white',
+                },
+                '& .MuiTabs-indicator': {
+                  backgroundColor: 'white',
+                },
+              }}
+            >
+              <Tab label="Credit Card Fraud Detection" value="/" component={Link} to="/" />
+            </Tabs>
+            <Button
+              variant="contained"
+              sx={{
+                backgroundColor: '#2b6dd6',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: '#89b5fa',
+                },
+              }}
+              startIcon={<AddIcon />}
+              onClick={handleOpen}
+            >
+              Add a Row
+            </Button>
+          </div>
+
+          <Routes>
+            <Route path="/" element={
+              <MUIDataTable
+                title={"Credit Card Transactions"}
+                data={data.map(row => Object.values(row))}
+                columns={columns}
+                options={{
+                  ...options,
+                  setRowProps: (row, dataIndex) => {
+                    return {
+                      className: data[dataIndex]?.isNew ? 'new-row' : '', // Apply the 'new-row' class to new rows
+                    };
+                  },
+                }}
+              />
+            } />
+          </Routes>
+
+          <ModalDialog open={open} handleClose={handleClose} handleAddRow={handleAddRow} />
+          <InsightsDialog open={insightsOpen} handleClose={handleInsightsClose} transaction={selectedTransaction} />
+
+        </ThemeProvider>
+      </div>
+    </div>
+  );
 };
 
-
-const getMuiTheme = () =>
-  createTheme({
-    typography: {
-      fontFamily: 'Poppins',
-    },
-    palette: {
-      background: {
-        paper: "#1e293b",
-        default: "#0f172a"
-      },
-      mode: 'dark',
-    },
-    components: {
-      MuiTableCell: {
-        styleOverrides: {
-          head: {
-            padding: "10px 4px",
-            backgroundColor: "#1e293b",
-            color: "#e2e8f0",
-          },
-          body: {
-            padding: "12px 15px",
-            color: "#e2e8f0"
-          },
-        }
-      },
-      MuiTableHead: {
-        styleOverrides: {
-          root: {
-            backgroundColor: "#1e293b",
-          },
-        }
-      },
-    }
-  });
-
-  const App = () => {
-    const location = useLocation();
-    const [data, setData] = useState(initialData);
-    const [open, setOpen] = useState(false);
-  
-    const handleOpen = () => {
-      setOpen(true);
-    };
-  
-    const handleClose = () => {
-      setOpen(false);
-    };
-  
-    const handleAddRow = (newRow) => {
-      newRow.isNew = true; // Mark the new row as 'new'
-      setData((prevData) => [{ ...newRow, isNew: true }, ...prevData]);
-    };
-  
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900 py-10">
-        <div className="w-full max-w-7xl h-3/5">
-          <ThemeProvider theme={getMuiTheme()}>
-            <div className="flex items-center justify-between">
-              <Tabs
-                value={location.pathname}
-                textColor="inherit"
-                indicatorColor="secondary"
-                sx={{
-                  '& .MuiTab-root': {
-                    color: 'white',
-                  },
-                  '& .MuiTabs-indicator': {
-                    backgroundColor: 'white',
-                  },
-                }}
-              >
-                <Tab label="Credit Card Fraud Detection" value="/" component={Link} to="/" />
-              </Tabs>
-              <Button
-                variant="contained"
-                sx={{
-                  backgroundColor: '#2b6dd6',
-                  color: 'white',
-                  '&:hover': {
-                    backgroundColor: '#89b5fa',
-                  },
-                }}
-                startIcon={<AddIcon />}
-                onClick={handleOpen}
-              >
-                Add a Row
-              </Button>
-            </div>
-  
-            <Routes>
-              <Route path="/" element={
-                  <MUIDataTable
-                  title={"Credit Card Transactions"}
-                  data={data.map(row => Object.values(row))}
-                  columns={columns}
-                  options={{
-                    ...options,
-                    setRowProps: (row, dataIndex) => {
-                      return {
-                        className: data[dataIndex]?.isNew ? 'new-row' : '', // Apply the 'new-row' class to new rows
-                      };
-                    },
-                  }}
-                />
-              } />
-            </Routes>
-  
-            <ModalDialog open={open} handleClose={handleClose} handleAddRow={handleAddRow} />
-  
-          </ThemeProvider>
-        </div>
-      </div>
-    );
-  };
-  
-  export default App;
+export default App;

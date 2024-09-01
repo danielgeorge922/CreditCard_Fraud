@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Button, styled, TextField } from "@mui/material";
+import axios from "axios";  // Import Axios
 
 const StyledTextField = styled(TextField)({
   margin: "1rem",
@@ -15,22 +16,63 @@ const Form = ({ handleClose, handleAddRow }) => {
   const [merchant, setMerchant] = useState("");
   const [fraudStatus, setFraudStatus] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const newRow = {
-      transactionId,
-      date,
-      amount,
-      location,
-      time,
-      merchant,
-      fraudStatus,
-      className: 'new-row',  // Add a class to highlight the new row
-    };
-    handleAddRow(newRow); // Add the new row to the table
-    handleClose(); // Close the modal on form submission
+  const handleSampleData = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:5000/sample_data');
+      const sample = response.data;
+
+      // Populate the form fields with sample data
+      setTransactionId(sample.transactionId);
+      setDate(sample.date);
+      setTime(sample.time);
+      setAmount(sample.amount);
+      setLocation(sample.location);
+      setMerchant(sample.merchant);
+
+    } catch (error) {
+      console.error("Error fetching sample data:", error);
+    }
   };
-  
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Construct the features array with exactly 30 elements
+    const features = [
+        parseFloat(time),           // 1st feature: time
+        ...Array(26).fill(0),       // 2nd to 27th features: placeholders (V1-V26)
+        parseFloat(amount),         // 28th feature: amount
+        0,                          // 29th feature: another placeholder
+        0                           // 30th feature: another placeholder
+    ];
+
+    try {
+        const response = await axios.post('http://127.0.0.1:5000/predict_keras', { features }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        setFraudStatus(response.data.prediction === 1 ? "Fraudulent" : "Legitimate");
+
+        const newRow = {
+            transactionId,
+            date,
+            amount,
+            location,
+            time,
+            merchant,
+            fraudStatus: response.data.prediction === 1 ? "Fraudulent" : "Legitimate",
+            className: 'new-row',
+        };
+
+        handleAddRow(newRow);
+        handleClose();
+
+    } catch (error) {
+        console.error("There was an error making the prediction!", error);
+    }
+};
 
   return (
     <form
@@ -43,6 +85,9 @@ const Form = ({ handleClose, handleAddRow }) => {
         padding: "2rem",
       }}
     >
+      <Button variant="outlined" color="primary" onClick={handleSampleData} sx={{ margin: "1rem" }}>
+        Fill with Sample Data
+      </Button>
       <StyledTextField
         label="Transaction ID"
         variant="filled"
