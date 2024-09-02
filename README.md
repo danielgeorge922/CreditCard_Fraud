@@ -38,113 +38,132 @@ Then finally run
 ```bash
 python src/app.py
 ```
-# Code Layout and Explanation
+# Features of the Product
 
+Model and Techniques
+--------------------
 
+### Deep Learning Model
 
-### input
+The backend uses a pre-trained Keras model to predict whether a transaction is fraudulent. The model is based on a shallow neural network architecture. The model was trained on a dataset of credit card transactions that includes both legitimate and fraudulent activities. Here are some key aspects of the model:
 
-Inside this folder is where the raw data for this table is stored. In this instance it is an xlsx file containing the data for the IRB and WesternIRB data
+-   **Input Features**: The model uses PCA-transformed features from the transaction data, along with the transaction `Amount` and `Time` as inputs.
+-   **Architecture**: The neural network consists of several dense layers, with ReLU activation functions and dropout for regularization.
+-   **Training**: The model was trained using TensorFlow, with binary cross-entropy as the loss function and the Adam optimizer.
 
-### utilites
+The Keras model is loaded in the Flask app using the following code snippet:
 
-Inside this folder contains the script nessecary to transform the given excel data into json files that the table component is able to utilize (irbDashboard\src\data\utilities\convert_xlsx_to_json.py)
+python
 
-![image](https://github.com/user-attachments/assets/b5059b55-c573-4059-8340-237fea2da561)
+Copy code
 
-Simply modify the excel_file_path and output_directory to your desired needs
+`from tensorflow.keras.models import load_model
 
-### output 
+# Load the Keras model
+keras_model = load_model('src/shallow_nn_b_final.keras')`
 
-This is the output directory that contains the json data used in the table/ generated from the utilites script
+### Evaluation
 
-## Pages
+The model was evaluated using the Area Under the Precision-Recall Curve (AUPRC) due to the highly imbalanced nature of the dataset. The model achieved high precision in detecting fraudulent transactions, making it suitable for real-world applications where minimizing false positives is critical.
 
-This directory contains the pages components of the webpage
-(TablePage.jsx)
+Frontend (React)
+----------------
 
-```html
-import React from 'react';
+The frontend is designed to visualize transaction data in an interactive data table and provide real-time predictions using the backend model. Below is an overview of the key components:
+
+### Pages
+
+This directory contains the page components of the webpage.
+
+html
+
+Copy code
+
+`import React from 'react';
 import Table from '../components/table';
 
 const TablePage = () => {
   return <Table />;
 };
 
-export default TablePage;
-```
-This is the code where you would add additional components like a navbar
+export default TablePage;`
 
-Since this github repo contains only the table, there is only one page inside here which corresponds to the table page. 
+This is where you would add additional components like a navbar. Since this GitHub repo contains only the table, there is only one page inside here, which corresponds to the table page. When more pages are added to this repo, this is the directory where these pages will be kept.
 
-When more pages are added to this repo this is the directory where these pages will be kept
-
-## Code Explanation for `Table` Component
+### Code Explanation for `Table` Component
 
 This code defines a React component that displays two data tables using Material-UI (MUI) and React Router. The component allows switching between two sets of data using tabs.
 
-### Imports
+#### Imports
 
-- **React**: For creating the component.
-- **react-router-dom**: For handling routing and navigation within the application.
-- **mui-datatables**: For rendering responsive data tables.
-- **@mui/material/styles**: For creating custom themes with Material-UI.
-- **@mui/material/Tabs and @mui/material/Tab**: For creating the tabs that switch between the data tables.
-- **Data Imports**: The data to be displayed in the tables (`myIRBData` and `westernIRBData`).
+-   **React**: For creating the component.
+-   **react-router-dom**: For handling routing and navigation within the application.
+-   **mui-datatables**: For rendering responsive data tables.
+-   **@mui/material/styles**: For creating custom themes with Material-UI.
+-   **@mui/material/Tabs and @mui/material/Tab**: For creating the tabs that switch between the data tables.
+-   **Data Imports**: The data to be displayed in the tables (`myIRBData` and `westernIRBData`).
 
-### Helper Functions
+#### Helper Functions
 
-- **getStatusColor**: Determines the color of a table cell based on the value (e.g., 'Missing', 'Closed', 'Approved', 'Changed').
+-   **getStatusColor**: Determines the color of a table cell based on the value (e.g., 'Missing', 'Closed', 'Approved', 'Changed').
 
-### Columns Configuration
+#### Columns Configuration
 
-- **columns**: Defines the columns for the `myIRBData` table, including custom rendering for status values.
-- **westernIRBColumns**: Defines the columns for the `westernIRBData` table, including custom rendering for status values.
+-   **columns**: Defines the columns for the `myIRBData` table, including custom rendering for status values.
+-   **westernIRBColumns**: Defines the columns for the `westernIRBData` table, including custom rendering for status values.
 
-### MUI Theme Configuration
+#### MUI Theme Configuration
 
-- **getMuiTheme**: Creates a custom theme for MUI components with specific typography and color palette.
+-   **getMuiTheme**: Creates a custom theme for MUI components with specific typography and color palette.
 
-### Data Table Components
+#### Data Table Components
 
-- **MyIRBDataTable**: A functional component that renders the `myIRBData` table using `MUIDataTable`.
-- **WesternIRBDataTable**: A functional component that renders the `westernIRBData` table using `MUIDataTable`.
+-   **MyIRBDataTable**: A functional component that renders the `myIRBData` table using `MUIDataTable`.
+-   **WesternIRBDataTable**: A functional component that renders the `westernIRBData` table using `MUIDataTable`.
 
-### Main Table Component
+#### Main Table Component
 
-- **Table**: The main functional component that:
-  - Uses `useLocation` from `react-router-dom` to track the current route.
-  - Renders the tabs (`myIRB Data` and `Western IRB Data`) using MUI `Tabs` and `Tab` components.
-  - Uses `Routes` and `Route` from `react-router-dom` to switch between the `MyIRBDataTable` and `WesternIRBDataTable` based on the current path.
+-   **Table**: The main functional component that:
+    -   Uses `useLocation` from `react-router-dom` to track the current route.
+    -   Renders the tabs (`myIRB Data` and `Western IRB Data`) using MUI `Tabs` and `Tab` components.
+    -   Uses `Routes` and `Route` from `react-router-dom` to switch between the `MyIRBDataTable` and `WesternIRBDataTable` based on the current path.
 
-### Detailed Breakdown of the `Table` Component
+#### Detailed Breakdown of the `Table` Component
 
-1. **Styling and Theme**:
-   - `getMuiTheme`: Customizes the MUI theme to use specific colors and typography.
-   - `ThemeProvider`: Applies the custom theme to all MUI components within the `Table` component.
+1.  **Styling and Theme**:
 
-2. **Tabs**:
-   - **Tabs Component**: Contains two tabs for switching between the two datasets.
-     - **Tab 1**: "myIRB Data" - Links to the root path `/`.
-     - **Tab 2**: "Western IRB Data" - Links to `/western-irb`.
+    -   `getMuiTheme`: Customizes the MUI theme to use specific colors and typography.
+    -   `ThemeProvider`: Applies the custom theme to all MUI components within the `Table` component.
+2.  **Tabs**:
 
-3. **Routes**:
-   - **Route for `/`**: Renders the `MyIRBDataTable` component.
-   - **Route for `/western-irb`**: Renders the `WesternIRBDataTable` component.
+    -   **Tabs Component**: Contains two tabs for switching between the two datasets.
+        -   **Tab 1**: "myIRB Data" - Links to the root path `/`.
+        -   **Tab 2**: "Western IRB Data" - Links to `/western-irb`.
+3.  **Routes**:
 
-### Example Use Case
+    -   **Route for `/`**: Renders the `MyIRBDataTable` component.
+    -   **Route for `/western-irb`**: Renders the `WesternIRBDataTable` component.
+
+#### Example Use Case
 
 When the user navigates to the application:
-1. **Initial View**: The application displays the `myIRBData` table by default.
-2. **Switching Tabs**: Clicking on the "Western IRB Data" tab changes the route to `/western-irb` and displays the `westernIRBData` table.
-3. **Custom Styling**: The table cells are styled based on the data values using the `getStatusColor` function.
 
-### Visual Features Correspondence
+1.  **Initial View**: The application displays the `myIRBData` table by default.
+2.  **Switching Tabs**: Clicking on the "Western IRB Data" tab changes the route to `/western-irb` and displays the `westernIRBData` table.
+3.  **Custom Styling**: The table cells are styled based on the data values using the `getStatusColor` function.
 
-- **Tabs**: The `Tabs` and `Tab` components create the visual tabs at the top of the table.
-- **Table Data**: The `MUIDataTable` components (`MyIRBDataTable` and `WesternIRBDataTable`) display the actual data in table format.
-- **Custom Styles**: Custom styles are applied to table cells based on the data values using the `getStatusColor` function and the theme created by `getMuiTheme`.
+#### Visual Features Correspondence
 
-## STYLING 
+-   **Tabs**: The `Tabs` and `Tab` components create the visual tabs at the top of the table.
+-   **Table Data**: The `MUIDataTable` components (`MyIRBDataTable` and `WesternIRBDataTable`) display the actual data in table format.
+-   **Custom Styles**: Custom styles are applied to table cells based on the data values using the `getStatusColor` function and the theme created by `getMuiTheme`.
 
-This project uses tailwind.css and google fonts all of which can be seen in index.css
+Styling
+-------
+
+This project uses **Tailwind CSS** and **Google Fonts**, all of which can be seen in `index.css`. Tailwind CSS provides utility-first CSS classes for rapid UI development, while Google Fonts adds custom fonts for better typography.
+
+Acknowledgements
+----------------
+
+This project was developed as part of a learning exercise in building a full-stack application that integrates a machine learning model into a web interface. Special thanks to the creators of Flask, React, and MUI for their excellent tools and libraries.
