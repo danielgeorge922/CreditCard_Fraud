@@ -1,6 +1,6 @@
 # Finance App
 
-This is a data table component that visualizes IRB and Western IRB data using the MUI Data Table library.
+This is a data table component that visualizes Credit Card fraud detection and spedning data using the MUI Data Table library.
 
 ## Installation
 
@@ -12,7 +12,7 @@ git clone https://github.com/UF-COM-OR/irbDashboard.git
 
 ### Running the Application
 
-Once inside the directory run the following command to install the dependencies to run the IRB Dashboard.
+Once inside the directory run the following command to install the dependencies to run the Dashboard.
 
 ```bash
 npm install --legacy-peer-deps
