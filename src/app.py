@@ -78,11 +78,10 @@ def predict_keras():
         print("An error occurred:", str(e))
         return jsonify({'error': str(e)}), 500
 
-@app.route('/')
+@app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
-def serve(path):
+def serve(path=''):
     return send_from_directory(app.static_folder, 'index.html')
-
 
 
 if __name__ == '__main__':
