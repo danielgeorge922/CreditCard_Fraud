@@ -1,11 +1,16 @@
 from flask import Flask, request, jsonify
 from flask.helpers import send_from_directory 
+
 from flask_cors import CORS, cross_origin
 import random
 import datetime
 
 app = Flask(__name__, static_folder='CreditCard_Fraud-1/dist', static_url_path='')
 CORS(app)
+
+ 
+# Load the Keras model
+
 
 # Hardcoded sample data
 sample_data_list = [
@@ -57,18 +62,24 @@ def get_sample_data():
 @app.route('/predict_keras', methods=['POST'])
 def predict_keras():
     try:
-        # Simulate random prediction between 1 (fraud) or 0 (non-fraud)
-        prediction_class = random.choice([0, 1])
-        return jsonify({'prediction': prediction_class})
+        print("Received POST request with data:", request.data)
+        data = request.get_json()
+        print("Parsed JSON data:", data)
+
+        if 'features' not in data:
+            print("Error: 'features' key not found in data")
+            return jsonify({'error': "'features' key not found in data"}), 400
+        
+        return jsonify({'prediction': 0})
 
     except Exception as e:
         print("An error occurred:", str(e))
         return jsonify({'error': str(e)}), 500
-
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
     return send_from_directory(app.static_folder, 'index.html')
+
 
 
 if __name__ == '__main__':
