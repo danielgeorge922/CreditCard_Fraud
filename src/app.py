@@ -1,13 +1,15 @@
 from flask import Flask, request, jsonify
+from flask.helpers import send_from_directory 
 from tensorflow.keras.models import load_model
 import numpy as np
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 import random
 import datetime
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='CreditCard_Fraud-1/dist', static_url_path='')
 CORS(app)
 
+ 
 # Load the Keras model
 keras_model = load_model('src/shallow_nn_b_final.keras')
 
@@ -47,6 +49,7 @@ def generate_random_date():
     return random_date.strftime("%m/%d/%Y")
 
 @app.route('/sample_data', methods=['GET'])
+@cross_origin()
 def get_sample_data():
     # Copy the first sample data to ensure the original is not modified
     sample_row = sample_data_list[0].copy()
@@ -83,6 +86,11 @@ def predict_keras():
     except Exception as e:
         print("An error occurred:", str(e))
         return jsonify({'error': str(e)}), 500
+@app.route('/')
+@cross_origin()
+def serve():
+    return send_from_directory(app.static_folder, 'index.html')
+
 
 if __name__ == '__main__':
     app.run(debug=True)

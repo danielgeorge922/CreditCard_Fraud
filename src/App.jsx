@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import MUIDataTable from 'mui-datatables';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Tabs from '@mui/material/Tabs';
@@ -20,6 +21,8 @@ import StoreIcon from '@mui/icons-material/Store';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import InsightsDialog from './InsightsDialog';
+import StockModel from './StockModel';
+import FinanceDashboard from './FinanceDashboard';
 
 const getStatusColor = (value) => {
   switch (value) {
@@ -43,6 +46,10 @@ const getStatusIcon = (value) => {
   }
 };
 
+const pageTransition = {
+  type: "tween",  // You can use "spring" for a different effect
+  duration: 0.5   // Adjust the duration to your liking
+};
 
 // Extended dummy data for Credit Card Fraud Detection with 20 rows
 const initialData = [
@@ -238,6 +245,12 @@ const App = () => {
   const [open, setOpen] = useState(false);
   const [insightsOpen, setInsightsOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+  
+  const pageVariants = {
+    initial: { opacity: 0, x: "-100vw" }, // Off-screen to the left
+    in: { opacity: 1, x: 0 },            // In-screen (centered)
+    out: { opacity: 0, x: "100vw" }      // Off-screen to the right
+  };
 
   const handleOpen = () => {
     setOpen(true);
@@ -376,67 +389,94 @@ const App = () => {
       }
     });
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900 py-10">
-      <div className="w-full max-w-7xl h-3/5">
-        <ThemeProvider theme={getMuiTheme()}>
-          <div className="flex items-center justify-between">
-            <Tabs
-              value={location.pathname}
-              textColor="inherit"
-              indicatorColor="secondary"
-              sx={{
-                '& .MuiTab-root': {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 py-10">
+        <div className="w-full max-w-7xl h-4/5">
+          <ThemeProvider theme={getMuiTheme()}>
+            <div className="flex items-center justify-between">
+                <Tabs
+                  value={location.pathname}
+                  textColor="inherit"
+                  indicatorColor="secondary"
+                  sx={{
+                    '& .MuiTab-root': { color: 'white' },
+                    '& .MuiTabs-indicator': { backgroundColor: 'white' },
+                  }}
+                >
+                  
+                  <Tab label="Dashboard" value="/finance" component={Link} to="/finance" />
+                  <Tab label="Credit Card Fraud Detection" value="/" component={Link} to="/" />
+                  <Tab label="Stock Model" value="/stock-model" component={Link} to="/stock-model" />
+                </Tabs>
+
+              <Button 
+                variant="contained"
+                sx={{
+                  backgroundColor: '#2b6dd6',
                   color: 'white',
-                },
-                '& .MuiTabs-indicator': {
-                  backgroundColor: 'white',
-                },
-              }}
-            >
-              <Tab label="Credit Card Fraud Detection" value="/" component={Link} to="/" />
-            </Tabs>
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: '#2b6dd6',
-                color: 'white',
-                '&:hover': {
-                  backgroundColor: '#89b5fa',
-                },
-              }}
-              startIcon={<AddIcon />}
-              onClick={handleOpen}
-            >
-              Add a Row
-            </Button>
-          </div>
-
-          <Routes>
-            <Route path="/" element={
-              <MUIDataTable
-                title={"Credit Card Transactions"}
-                data={data.map(row => Object.values(row))}
-                columns={columns}
-                options={{
-                  ...options,
-                  setRowProps: (row, dataIndex) => {
-                    return {
-                      className: data[dataIndex]?.isNew ? 'new-row' : '', // Apply the 'new-row' class to new rows
-                    };
-                  },
+                  '&:hover': { backgroundColor: '#89b5fa' },
                 }}
-              />
-            } />
-          </Routes>
+                startIcon={<AddIcon />}
+                onClick={() => setOpen(true)}
+              >
+                Add a Row
+              </Button>
+            </div>
+  
+            {/* Add AnimatePresence for exit transitions */}
+            <AnimatePresence mode="wait">
+              <Routes location={location} key={location.pathname}>
+                {/* Motion Div for Route Animation */}
+                <Route path="/" element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <MUIDataTable
+                      title={"Credit Card Transactions"}
+                      data={data.map(row => Object.values(row))}
+                      columns={columns}
+                      options={options}
+                    />
+                  </motion.div>
+                } />
 
-          <ModalDialog open={open} handleClose={handleClose} handleAddRow={handleAddRow} />
-          <InsightsDialog open={insightsOpen} handleClose={handleInsightsClose} transaction={selectedTransaction} />
+                <Route path="/finance" element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <FinanceDashboard />
+                  </motion.div>
+                } />
 
-        </ThemeProvider>
+                <Route path="/stock-model" element={
+                  <motion.div
+                    initial="initial"
+                    animate="in"
+                    exit="out"
+                    variants={pageVariants}
+                    transition={pageTransition}
+                  >
+                    <StockModel />
+                  </motion.div>
+                } />
+              </Routes>
+            </AnimatePresence>
+              
+            <ModalDialog open={open} handleClose={() => setOpen(false)} handleAddRow={handleAddRow} />
+            <InsightsDialog open={insightsOpen} handleClose={() => setInsightsOpen(false)} transaction={selectedTransaction} />
+  
+          </ThemeProvider>
+        </div>
       </div>
-    </div>
-  );
-};
-
-export default App;
+    );
+  };
+  
+  export default App;
