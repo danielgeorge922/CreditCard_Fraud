@@ -29,3 +29,5 @@ venv/
 .venv/
 # Other
 .env
+# Ignore Keras model file
+src/shallow_nn_b_final.keras

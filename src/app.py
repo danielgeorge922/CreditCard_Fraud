@@ -1,17 +1,11 @@
 from flask import Flask, request, jsonify
 from flask.helpers import send_from_directory 
-from tensorflow.keras.models import load_model
-import numpy as np
 from flask_cors import CORS, cross_origin
 import random
 import datetime
 
 app = Flask(__name__, static_folder='CreditCard_Fraud-1/dist', static_url_path='')
 CORS(app)
-
- 
-# Load the Keras model
-keras_model = load_model('src/shallow_nn_b_final.keras')
 
 # Hardcoded sample data
 sample_data_list = [
@@ -60,37 +54,10 @@ def get_sample_data():
     
     return jsonify(sample_row)
 
-@app.route('/predict_keras', methods=['POST'])
-def predict_keras():
-    try:
-        print("Received POST request with data:", request.data)
-        data = request.get_json()
-        print("Parsed JSON data:", data)
-
-        if 'features' not in data:
-            print("Error: 'features' key not found in data")
-            return jsonify({'error': "'features' key not found in data"}), 400
-
-        features = np.array(data['features']).reshape(1, -1)
-        print("Features shape:", features.shape)
-        print("Features content:", features)
-
-        prediction = keras_model.predict(features)
-        print("Raw prediction output:", prediction)
-
-        prediction_class = (prediction.flatten() > 0.5).astype(int)
-        print("Predicted class:", prediction_class[0])
-
-        return jsonify({'prediction': int(prediction_class[0])})
-
-    except Exception as e:
-        print("An error occurred:", str(e))
-        return jsonify({'error': str(e)}), 500
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
     return send_from_directory(app.static_folder, 'index.html')
-
 
 
 if __name__ == '__main__':
