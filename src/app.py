@@ -69,13 +69,16 @@ def predict_keras():
         if 'features' not in data:
             print("Error: 'features' key not found in data")
             return jsonify({'error': "'features' key not found in data"}), 400
-        
-        return jsonify({'prediction': 0})
+
+        # Return random prediction: 0 or 1
+        prediction = random.choice([0, 1])
+        return jsonify({'prediction': prediction})
 
     except Exception as e:
         print("An error occurred:", str(e))
         return jsonify({'error': str(e)}), 500
-@app.route('/', defaults={'path': ''})
+
+@app.route('/')
 @app.route('/<path:path>')
 def serve(path):
     return send_from_directory(app.static_folder, 'index.html')
