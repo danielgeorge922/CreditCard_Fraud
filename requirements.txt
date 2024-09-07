@@ -54,8 +54,7 @@
 Flask==3.0.3
 Flask-Cors==5.0.0
 gunicorn==23.0.0
-tensorflow-cpu==2.17.0   # Switch to CPU version for reduced size
-numpy==1.26.4
+  # Switch to CPU version for reduced size
 protobuf==4.25.4          # Optional, used by TensorFlow
 Werkzeug==3.0.4
 requests==2.32.3          # Required if you're making external API calls, otherwise optional
