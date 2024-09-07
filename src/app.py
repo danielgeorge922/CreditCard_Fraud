@@ -86,10 +86,11 @@ def predict_keras():
     except Exception as e:
         print("An error occurred:", str(e))
         return jsonify({'error': str(e)}), 500
-@app.route('/')
-@cross_origin()
-def serve():
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
     return send_from_directory(app.static_folder, 'index.html')
+
 
 
 if __name__ == '__main__':
