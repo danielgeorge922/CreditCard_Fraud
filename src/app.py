@@ -54,6 +54,17 @@ def get_sample_data():
     
     return jsonify(sample_row)
 
+@app.route('/predict_keras', methods=['POST'])
+def predict_keras():
+    try:
+        # Simulate random prediction between 1 (fraud) or 0 (non-fraud)
+        prediction_class = random.choice([0, 1])
+        return jsonify({'prediction': prediction_class})
+
+    except Exception as e:
+        print("An error occurred:", str(e))
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
